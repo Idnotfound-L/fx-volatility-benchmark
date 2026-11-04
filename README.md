@@ -36,7 +36,7 @@ difference statistically significant?** Beyond the winner I wanted to know *wher
 | Model | h=1 gain | h=1 ex-INR | sig. better / worse | h=5 gain | h=5 ex-INR | sig. better / worse |
 |---|---|---|---|---|---|---|
 | roll20 | -0.053 | -0.054 | 0 / 8 | -0.053 | -0.053 | 0 / 8 |
-| ewma | -0.007 | -0.012 | 1 / 1 | -0.009 | -0.013 | 0 / 3 |
+| ewma | -0.007 | -0.012 | 0 / 1 | -0.009 | -0.013 | 0 / 3 |
 | **garch** (benchmark) | 0 | 0 | - | 0 | 0 | - |
 | har | -0.034 | -0.042 | 0 / 2 | -0.024 | -0.032 | 0 / 3 |
 | lgbm_noglobal | -0.000 | -0.005 | 1 / 0 | +0.000 | -0.007 | 1 / 2 |
@@ -46,8 +46,8 @@ difference statistically significant?** Beyond the winner I wanted to know *wher
 ### What I found
 1. **GARCH(1,1) is a hard benchmark.** Simple rolling windows are significantly worse in 8 of 9 currencies; HAR on squared returns is also worse on average.
 2. **Almost the entire average gain over GARCH comes from one currency, USD/INR.** Excluding INR, LightGBM is level with GARCH (+0.000 at h=1, -0.002 at h=5) and the combination gains only +0.003 / +0.001 QLIKE. INR alone contributes about +0.047 (LightGBM) and +0.053 (combo) at h=1.
-3. **The global-volatility feature matters for the *other* currencies, not for INR.** Without it, the pooled LightGBM is *worse* than GARCH outside INR (-0.005 at h=1, -0.007 at h=5; significantly worse for CAD and KRW at h=5). Adding the cross-currency state brings it back to parity. On INR, however, even the version *without* the global feature beats GARCH significantly (p = 0.039 at h=1, p = 0.004 at h=5), so INR's gain is not explained by the global feature.
-4. **USD/INR is where GARCH is weakest.** LightGBM and the combination beat it with p = 0.012 / 0.001 at h=1 and p < 0.001 at h=5; only the h=5 results (and the h=1 combo) survive a Bonferroni correction over 9 currencies (threshold 0.0056). A plausible reason is that INR is a managed float whose volatility has regime and intervention dynamics that a single GARCH(1,1) captures poorly. This is a hypothesis, not something I proved; the simple HAR and EWMA models also have positive (but insignificant) point gains on INR, which is consistent with GARCH being a poor fit there.
+3. **The global-volatility feature matters for the *other* currencies, not for INR.** Without it, the pooled LightGBM is *worse* than GARCH outside INR (-0.005 at h=1, -0.007 at h=5; significantly worse for CAD and KRW at h=5). Adding the cross-currency state brings it back to parity. On INR, however, even the version *without* the global feature beats GARCH significantly (p = 0.040 at h=1, p = 0.004 at h=5), so INR's gain is not explained by the global feature.
+4. **USD/INR is where GARCH is weakest.** LightGBM and the combination beat it with p = 0.0125 / 0.0008 at h=1 and p < 0.001 at h=5; only the h=5 results (and the h=1 combo) survive a Bonferroni correction over 9 currencies (threshold 0.0056). A plausible reason is that INR is a managed float whose volatility has regime and intervention dynamics that a single GARCH(1,1) captures poorly. This is a hypothesis, not something I proved; the simple HAR and EWMA models also have positive (but insignificant) point gains on INR, which is consistent with GARCH being a poor fit there.
 5. **Averaging forecasts is the most reliable improvement.** `combo` has the lowest mean QLIKE in both horizons and both sub-periods, but the effect size outside INR is small.
 6. **Honest caveats:** for 8 of 9 currencies no ML model is significantly better than GARCH. On MSE (dominated by rare spikes) nothing meaningfully beats GARCH: `combo` is within 0.1% of it at h=1 and about 1% worse at h=5, and LightGBM alone is 1-8% worse.
 
